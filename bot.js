@@ -2,14 +2,17 @@ const { Client, RichEmbed } = require("discord.js");
 const client = new Client({ disableEveryone: true})
 const ytdl = require("ytdl-core");
 const convert = require("hh-mm-ss")
-const prefix = `$`
+const prefix = `$$`
 const fetchVideoInfo = require("youtube-info");
 const simpleytapi = require('simple-youtube-api')
 const youtube = new simpleytapi("AIzaSyCQapWI28_Um0n4AEGNVw7l3QZqhQF0cFs")
 var guilds = {};
-
+ 
 /////////////////////////////////////////////////////////////////
-client.on('ready', () => client.user.setActivity(`${prefix}play , ${prefix}search.`, {type: "LISTENING"}))
+client.on('ready', () => {
+    client.user.setActivity(`${prefix}play , ${prefix}search.`, {type: "LISTENING"})
+console.log()
+})
 /////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////
  
@@ -23,7 +26,7 @@ client.on('message', async function(message) {
     const correct = '✔'
     const nope = '✖'
     let args = message.content.split(' ').slice(1).join(" ");
-
+    const mess = message.content.toLowerCase();
     if (message.content.startsWith(`${prefix}eval`)) {
         const eargs = message.content.split(" ").slice(1);
         if(!devs.includes(message.author.id)) return;
@@ -36,7 +39,7 @@ client.on('message', async function(message) {
         try {
           const code = eargs.join(" ");
           let evaled = eval(code);
-    
+   
           if (typeof evaled !== "string")
             evaled = require("util").inspect(evaled);    
           message.channel.send(clean(evaled), {code:"xl"});
@@ -55,19 +58,19 @@ client.on('message', async function(message) {
                {
                 name: '❯ Music Commands',
                 value: `${music.map(m =>`\`\`${m.name}\`\``).join(" ")}`
-               }, 
+               },
                {
                    name: "❯ Info Commands",
                    value: `${info.map(m =>`\`\`${m.name}\`\``).join(" ")}`
                }
-           ], 
+           ],
            color: 0xF19894,
            footer: {
                text: `${client.user.username} ${botversion} Beta`
            }
        }})
       }
-
+ 
       if(message.content.startsWith(`${prefix}info`)) {
         function convertMS(ms) {
             var d, h, m, s;
@@ -92,25 +95,18 @@ client.on('message', async function(message) {
         .setURL("https://abayro.xyz")
         .addField("Version", botversion, true)
         .addField("Library", "[discordjs](https://www.npmjs.com/packages/discord.js)", true)
-        .addField("Creator", "Abady", true)
         .addField("Users", `${client.users.size}`, true)
         .addField('RAM Usage',`${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} MB`,true)     
-        .addField('Source Code', '**[View](https://github.com/Abady321x123/simple-music)**')
         .setFooter(`Uptime ${uptime}`)
         .setColor("RANDOM")
     )
-      }
-     else if (message.content.startsWith(`${prefix}invite`)) {
-         client.generateInvite(["SEND_MESSAGES", 'CONNECT', 'SPEAK', 'VIEW_CHANNEL', 'ADMINISTRATOR']).then(link => {
-             message.channel.send("", {embed: {description: `${client.user.tag} says that would be awesome <3 **[Click here to invite me!](${link})**`, color: 0x00ff00}})
-         })
-     } else if(message.content.startsWith(`${prefix}contact`)) {
-        if(!args) return message.channel.send(`Get in touch with me, leave a message. (Real Inqiures Only) \`\`${prefix}contact (Your message)\`\``)
-        if(args.length < 2) return message.channel.send(`Your message haven't delivered. make sure your message is more than one word.`)
-        client.users.get(devs[0]).send(`${args}\n\n Server: ${message.guild.name} - User: ${message.author.tag}`).then(()=> {
-            message.channel.send(`**Thank you!** Your message have been delivered. I'll try to reply as soon as possible.`, {files: ['https://pbs.twimg.com/media/DeikbSqV0AAUSUU.jpg']})
-        })
-    };
+       } //else if(message.content.startsWith(`${prefix}contact`)) {
+        //if(!args) return message.channel.send(`Use this command to talk with the bot devs, please do not use this if you have no purpose of using it`)
+        //if(args.length < 2) return message.channel.send(`Your message haven't been delivered. make sure your message is more than one word.`)
+        //client.users.get(devs[0]).send(`${args}\n\n Server: ${message.guild.name} - User: ${message.author.tag}`).then(()=> {
+          //  message.channel.send(`**Thank you!** Your message have been delivered. I'll try to reply as soon as possible.`, {files: ['https://image.prntscr.com/image/Aw5uzmZjQgSsfxBUDt9GGg.png']})
+        //})
+    //};
 
      function clear() { 
         guilds[message.guild.id].queue = [];
@@ -124,7 +120,6 @@ client.on('message', async function(message) {
         guilds[message.guild.id].volume = 1;
     }
     
-    const mess = message.content.toLowerCase();
 
     if (!guilds[message.guild.id]) {
         guilds[message.guild.id] = {
@@ -141,8 +136,11 @@ client.on('message', async function(message) {
     }
 
 
-    if (mess.startsWith(prefix + "play") || mess.startsWith(prefix+"شغل")) {
+    if (mess.startsWith(prefix + "play")) {
         if (message.member.voiceChannel || guilds[message.guild.id].voiceChannel != null) {
+if(!message.content.startsWith(prefix)) return;
+    if(message.author.bot) return;
+
         const voiceChannel = message.member.voiceChannel
         const permissions = voiceChannel.permissionsFor(message.client.user)
         if (!permissions.has('CONNECT')) return message.channel.send({embed: {description: "🛑 I don't have permission to CONNECT! Give me some."}});
@@ -173,8 +171,7 @@ client.on('message', async function(message) {
                 if(!id) return message.channel.send(`:x: I couldn't find anything with this title **${args}**.`);
                    fetchVideoInfo(id, function(err, videoInfo) {
                         if (err) throw new Error(err);
-                        if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`).then(message.react(nope));
-                        else message.react(correct)
+                        if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`)
                         add_to_queue(id, message);
                         message.channel.send(new RichEmbed()
                         .setAuthor("Added to queue", message.author.avatarURL)
@@ -188,9 +185,13 @@ client.on('message', async function(message) {
 						.setThumbnail(videoInfo.thumbnailUrl)
                         )
                         guilds[message.guild.id].queueNames.push(videoInfo.title);
+                        
                     });
+                    
                 })
+                
             })
+            
             } else {
             if (args.match(/[?&]list=([^#\&\?]+)/)) {
                 const playlist = await youtube.getPlaylist(args);
@@ -218,8 +219,8 @@ client.on('message', async function(message) {
                     if(!id) return message.channel.send(`:x: I couldn't find anything with this title **${args}**.`);
                     fetchVideoInfo(id, function(err, videoInfo) {
                         if (err) throw new Error(err);
-                        if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`).then(message.react(nope))
-                        else message.react(correct)
+                        if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`)
+                        else
                         playMusic(id, message);
                         guilds[message.guild.id].isPlaying = true;
                         guilds[message.guild.id].queue.push(id);
@@ -228,11 +229,12 @@ client.on('message', async function(message) {
                     })
                 })})}}
             }
+            
         } else {
             message.channel.send(novc);
         }
-
-    } else if (mess.startsWith(prefix + "skip") || mess.startsWith(prefix+"عدي")) {
+    
+    } else if (mess.startsWith(prefix + "skip")) {
         if(!message.member.voiceChannel) return message.channel.send(novc)
         if(message.member.hasPermission('MANAGE_CHANNELS')) {
         if (guilds[message.guild.id].queueNames[0]) {
@@ -256,7 +258,7 @@ client.on('message', async function(message) {
             message.channel.send(":x: you already voted to skip!");
         }
 
-    } else if (mess.startsWith(prefix + "queue") || mess.startsWith(prefix+"قائمة")) {
+    } else if (mess.startsWith(prefix + "queue") || mess.startsWith(prefix+"q")) {
         if(guilds[message.guild.id].queueNames.length < 1) return message.channel.send(`**:x: Nothing playing in this server**`);
         const numbaone = await youtube.getVideoByID(guilds[message.guild.id].queue[0])
         if(!guilds[message.guild.id].queueNames[1]) return message.channel.send('', {embed: {
@@ -385,7 +387,9 @@ if(mess.startsWith(prefix+"np")) {
     })
 }
 
-if(mess.startsWith(prefix+"stop") || mess.startsWith(prefix+"اطلع")) {
+if(mess.startsWith(prefix+"stop")) {
+if(message.author.id != "470286242735587348" || message.author.id != "284151161291014144") return;
+
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if(guilds[message.guild.id].isPlaying) guilds[message.guild.id].dispatcher.end();
     if (guilds[message.guild.id].voiceChannel)
@@ -396,86 +400,86 @@ if(mess.startsWith(prefix+"stop") || mess.startsWith(prefix+"اطلع")) {
     }
 }
 
-if(mess.startsWith(prefix+"stfu") || message.content.startsWith(`<@${client.user.id}> stfu`)) {
+if(mess.startsWith(prefix+"leave")) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if(guilds[message.guild.id].isPlaying) guilds[message.guild.id].dispatcher.end();
     if (guilds[message.guild.id].voiceChannel)
     { 
     await clear()
     message.guild.voiceConnection.disconnect();
-    message.channel.send(`:cry: k sempai!`)
+    message.channel.send(`:cry: OK!`)
     }
 }
 
-if(message.content.startsWith(prefix+"search")) {
-    let index = 0
-    if(!args) return message.channel.send(`:x: You didn't enter a query!`)
-    const videos = await youtube.searchVideos(args, 5)
-    message.channel.send(`**${yt} Search Results for \`\`${args}\`\`**`,{embed: {
-    description: `**__Song Selection__** Type the number of the song or do **cancel** to cancel!\n\n${videos.map(song =>`**${++index}. [${song.title}](${song.url})**`).join('\n')}`,
-    footer: {
-        text: `Requested by ${message.author.username} (${message.author.id})`,
-        icon_url: message.author.avatarURL
-    }
-    }})
-try {
-var response = await message.channel.awaitMessages(msg2 => msg2.content > 0 && msg2.content < 11 || msg2.content === 'cancel' || msg2.content.startsWith(`${prefix}search`) && msg2.author.id === message.author.id, {
-    maxMatches: 1,
-    time: 30000,
-    errors: ['time'],
-});
-} catch (error) {
-return message.channel.send(`**:x: Timeout**`) 
-}
-if(guilds[message.guild.id].queue.length > 100) return message.channel.send(``, {embed: {
-    description: `🔒 Sorry, max queue length is 100, do **${prefix}clear** to clear entire queue or **${prefix}clear <number>** to clear 1 item`
-}})
-if(!message.member.voiceChannel) return;
-if(response.first().content === 'cancel') return message.channel.send(`Alright, I've **cancelled** this opreation.`)
-if(response.first().content === `${prefix}search`) return;
-const videoIndex = parseInt(response.first().content)
-const voiceChannel = message.member.voiceChannel
-const permissions = voiceChannel.permissionsFor(message.client.user)
-if (!permissions.has('CONNECT')) return message.channel.send({embed: {description: "🛑 I don't have permission to CONNECT! Give me some."}});
-if (!permissions.has('SPEAK')) return message.channel.send({embed: {description: "🛑 I don't have permission to SPEAK! Give me some."}});    
-const id = videos[videoIndex - 1].id;
-message.delete();
-if(!guilds[message.guild.id].queue[0] || !guilds[message.guild.id].isPlaying) {
-fetchVideoInfo(id, function(err, videoInfo) {
-if (err) throw new Error(err);
-if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`).then(message.react(nope));
-if(!message.member.voiceChannel) return message.channel.send(novc); 
-else message.react(correct)
-playMusic(id, message);
-guilds[message.guild.id].isPlaying = true;
-guilds[message.guild.id].queue.push(id);
-guilds[message.guild.id].queueNames.push(videos[videoIndex - 1].title);
-message.channel.send(`Playing :notes: **\`\`${videos[videoIndex - 1].title}\`\`** ― Now!`);
-});
-} else {
-        fetchVideoInfo(`${id}`, function(err, videoInfo) {
-            if (err) throw new Error(err);
-            if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`).then(message.react(nope));
-            else message.react(correct)
-            add_to_queue(id, message);
-            message.channel.send(new RichEmbed()
-            .setAuthor("Added to queue", message.author.avatarURL)
-            .setTitle(videoInfo.title)
-            .setURL(videoInfo.url)
-            .addField("Channel", videoInfo.owner, true)
-            .addField("Duration", convert.fromS(videoInfo.duration, 'mm:ss') , true)
-            .addField("Published at", videoInfo.datePublished, true)
-            .addField("Postion in queue", guilds[message.guild.id].queueNames.length, true)
-            .setColor("RED")
-            .setThumbnail(videoInfo.thumbnailUrl)
-            )
-            guilds[message.guild.id].queueNames.push(videoInfo.title);
-        });
-}
-    }
+// if(message.content.startsWith(prefix+"search")) {
+
+//     let index = 0
+//     if(!args) return message.channel.send(`:x: You didn't enter a query!`)
+//     const videos = await youtube.searchVideos(args, 5)
+//     message.channel.send(`**${yt} Search Results for \`\`${args}\`\`**`,{embed: {
+//     description: `**__Song Selection__** Type the number of the song or do **cancel** to cancel!\n\n${videos.map(song =>`**${++index}. [${song.title}](${song.url})**`).join('\n')}`,
+//     footer: {
+//         text: `Requested by ${message.author.username} (${message.author.id})`,
+//         icon_url: message.author.avatarURL
+//     }
+//     }})
+// try {
+// var response = await message.channel.awaitMessages(msg2 => msg2.content > 0 && msg2.content < 11 || msg2.content === 'cancel' || msg2.content.startsWith(`${prefix}search`) && msg2.author.id === message.author.id, {
+//     maxMatches: 1,
+//     time: 30000,
+//     errors: ['time'],
+// });
+// } catch (error) {
+// return message.channel.send(`**:x: Timeout**`) 
+// }
+// if(guilds[message.guild.id].queue.length > 100) return message.channel.send(``, {embed: {
+//     description: `🔒 Sorry, max queue length is 100, do **${prefix}clear** to clear entire queue or **${prefix}clear <number>** to clear 1 item`
+// }})
+// if(!message.member.voiceChannel) return;
+// if(response.first().content === 'cancel') return message.channel.send(`Alright, I've **cancelled** this opreation.`)
+// if(response.first().content === `${prefix}search`) return;
+// const videoIndex = parseInt(response.first().content)
+// const voiceChannel = message.member.voiceChannel
+// const permissions = voiceChannel.permissionsFor(message.client.user)
+// if (!permissions.has('CONNECT')) return message.channel.send({embed: {description: "🛑 I don't have permission to CONNECT! Give me some."}});
+// if (!permissions.has('SPEAK')) return message.channel.send({embed: {description: "   I don't have permission to SPEAK! Give me some."}});    
+// const id = videos[videoIndex - 1].id;
+// message.delete();
+// if(!guilds[message.guild.id].queue[0] || !guilds[message.guild.id].isPlaying) {
+// fetchVideoInfo(id, function(err, videoInfo) {
+// if (err) throw new Error(err);
+// if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`)
+// else
+// playMusic(id, message);
+// guilds[message.guild.id].isPlaying = true;
+// guilds[message.guild.id].queue.push(id);
+// guilds[message.guild.id].queueNames.push(videos[videoIndex - 1].title);
+// message.channel.send(`Playing :notes: **\`\`${videos[videoIndex - 1].title}\`\`** ― Now!`);
+// });
+// } else {
+//         fetchVideoInfo(`${id}`, function(err, videoInfo) {
+//             if (err) throw new Error(err);
+//             if(videoInfo.duration > 1800) return message.channel.send(`**${message.author.username}, :x: Cannot play a video that's longer than 30 minutes**`)
+
+//             add_to_queue(id, message);
+//             message.channel.send(new RichEmbed()
+//             .setAuthor("Added to queue", message.author.avatarURL)
+//             .setTitle(videoInfo.title)
+//             .setURL(videoInfo.url)
+//             .addField("Channel", videoInfo.owner, true)
+//             .addField("Duration", convert.fromS(videoInfo.duration, 'mm:ss') , true)
+//             .addField("Published at", videoInfo.datePublished, true)
+//             .addField("Postion in queue", guilds[message.guild.id].queueNames.length, true)
+//             .setColor("RED")
+//             .setThumbnail(videoInfo.thumbnailUrl)
+//             )
+//             guilds[message.guild.id].queueNames.push(videoInfo.title);
+//         });
+// }
+//     }
 
 
-else if (mess.startsWith(prefix + 'vol') || mess.startsWith(prefix + "volume")|| mess.startsWith(prefix+"صوت")) {
+else if (mess.startsWith(prefix + 'vol') || mess.startsWith(prefix + "volume")) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if (!guilds[message.guild.id].isPlaying) return message.channel.send("**:x: Nothing playing in this server**")
     if(!args) return message.channel.send(`**:loud_sound: Current Volume:** ${guilds[message.guild.id].dispatcher.volume*100}`)
@@ -488,7 +492,7 @@ else if (mess.startsWith(prefix + 'vol') || mess.startsWith(prefix + "volume")||
 }
 
 
-else if (mess.startsWith(prefix + 'pause') || mess.startsWith(prefix+"وقف")) {
+else if (mess.startsWith(prefix + 'pause')) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if(guilds[message.guild.id].isPlaying !== true || !guilds[message.guild.id].queue[0]) return message.channel.send(`**:x: Nothing playing in this server**`)
     if (guilds[message.guild.id].dispatcher.paused === true) return message.channel.send("*:hash: Already paused*")
@@ -497,7 +501,7 @@ else if (mess.startsWith(prefix + 'pause') || mess.startsWith(prefix+"وقف")) 
     });
 }
 
-else if (mess.startsWith(prefix + 'resume') || mess.startsWith(prefix+"كمل")) {
+else if (mess.startsWith(prefix + 'resume')) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if (guilds[message.guild.id].dispatcher.paused === false) return message.channel.send("*:hash: Nothing to resume.*")
     message.channel.send(':play_pause: **Resuming**').then(() => {
@@ -508,7 +512,7 @@ else if (mess.startsWith(prefix + 'resume') || mess.startsWith(prefix+"كمل"))
 
 //? ONE ITEM WORKS, BUT QUEUE NO... ==> QUEUE LOOP SYSTEM IN 2.0
 
-else if (mess.startsWith(prefix + 'loop') || mess.startsWith(prefix+"عيد")) {
+else if (mess.startsWith(prefix + 'loop')) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if (!guilds[message.guild.id].isPlaying) return message.channel.send("**:x: Nothing playing in this server**")
     if(guilds[message.guild.id].loop === true) {
@@ -527,17 +531,25 @@ else if (mess.startsWith(prefix + 'loop') || mess.startsWith(prefix+"عيد")) {
 //     shuffle(guilds[message.guild.id].queue.slice(1) , guilds[message.guild.id].queueNames.slice(1))
 //     message.channel.send(`:twisted_rightwards_arrows: Queue shuffled.`)
 }*/
-else if (mess.startsWith(prefix + 'join') || mess.startsWith(prefix+"ادخل")) {
+else if (mess.startsWith(prefix + 'join')) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if(!guilds[message.guild.id].isPlaying && guilds[message.guild.id].queueNames.length <= 0) {
-        message.member.voiceChannel.join().then(message.react(correct));
+        message.member.voiceChannel.join()
         message.channel.send(`**:page_facing_up: Queue moved to \`\`${message.member.voiceChannel.name}\`\`**`)
     } else {
         message.channel.send(`:x: **Music is being played in another voice channel!**`)
     }
-}
+    
 
-else if (mess.startsWith(prefix + 'clear') || mess.startsWith(prefix+"نظف")) {
+
+  let sEmbed = new RichEmbed()
+  .setColor("#FF9900")
+  .setTitle(`Prefix Has been Set to ${args}`)
+
+
+  message.channel.send(sEmbed);
+
+}else if (mess.startsWith(prefix + 'clear')) {
     if (!message.member.voiceChannel) return message.channel.send(novc);
     if(!guilds[message.guild.id].queueNames[0] || !guilds[message.guild.id].isPlaying) return message.channel.send(`**:x: Nothing playing in this server**`)
    if(guilds[message.guild.id].queueNames.length > 1) {
@@ -554,8 +566,15 @@ else if (mess.startsWith(prefix + 'clear') || mess.startsWith(prefix+"نظف")) 
    } else if(guilds[message.guild.id].queueNames.length <= 1 ) {
        message.channel.send(`:x: There's only 1 item in the queue. use \`\`${prefix}skip\`\` instead! `)
    }
+
+
+}else{
+  return;
 }
-});
+      
+
+})
+
 
 
 
@@ -590,7 +609,7 @@ async function playMusic(id, message) {
                 guilds[message.guild.id].queueNames = [];
                 guilds[message.guild.id].isPlaying = false;
                 setTimeout(function() {
-                if(guilds[message.guild.id].voiceChannel !== null) return message.channel.send(`**:stop_button: Queue concluded.** `)
+                if(guilds[message.guild.id].voiceChannel !== null) return message.channel.send(`**:stop_button: We really Hope you had a nice time =)**`)
             }, 1000)
             } else {
                 setTimeout(async function() {
@@ -630,46 +649,4 @@ function add_to_queue(strID, message) {
 function isYoutube(str) {
     return str.toLowerCase().indexOf("youtube.com") > -1 || str.toLowerCase().indexOf("youtu.be") > -1;
 }
-
-////////////////
-
-const adminprefix = "$";
-const developers = ["449755680816103426" , "530062292969062412"]//Toxic Codes
-client.on('message', message => {//Toxic Codes
-    var argresult = message.content.split(` `).slice(1).join(' ');//Toxic Codes
-      if (!developers.includes(message.author.id)) return;
-     
-  if (message.content.startsWith(adminprefix + 'sp')) {
-    client.user.setGame(argresult);
-      message.channel.send(`**✅   ${argresult}**`)
-  } else
-     if (message.content === (adminprefix + "leave")) {//Toxic Codes
-    message.guild.leave();   //Toxic Codes
-  } else  
-  if (message.content.startsWith(adminprefix + 'sw')) {
-  client.user.setActivity(argresult, {type:'WATCHING'});//Toxic Codes
-      message.channel.send(`**✅   ${argresult}**`)//Toxic Codes
-  } else
-  if (message.content.startsWith(adminprefix + 'sl')) {
-  client.user.setActivity(argresult , {type:'LISTENING'});
-      message.channel.send(`**✅   ${argresult}**`)//Toxic Codes
-  } else
-  if (message.content.startsWith(adminprefix + 'sets')) {
-    client.user.setGame(argresult, "https://www.twitch.tv/zero");
-      message.channel.send(`**✅**`)//Toxic Codes
-  }
-  if (message.content.startsWith(adminprefix + 'setname')) {
-  client.user.setUsername(argresult).then
-      message.channel.send(`Changing The Name To ..**${argresult}** `)
-} else
-  if (message.content.startsWith(adminprefix + 'setprefix')) {//Toxic Codes
-  client.user.setPrefix(argresult).then
-      message.channel.send(`Changing Prefix ..**${argresult}** `)//Toxic Codes
-} else
-if (message.content.startsWith(adminprefix + 'setavatar')) {//Toxic Codes
-  client.user.setAvatar(argresult);
-    message.channel.send(`Changing The Avatar To :**${argresult}** `);//Toxic Codes
-}
-});//Toxic Codes
-
 client.login(process.env.BOT_TOKEN);
