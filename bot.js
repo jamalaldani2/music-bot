@@ -2,6 +2,7 @@ const { Client, RichEmbed } = require("discord.js");
 const client = new Client({ disableEveryone: true})
 const ytdl = require("ytdl-core");
 const convert = require("hh-mm-ss")
+const prefix = `$`
 const fetchVideoInfo = require("youtube-info");
 const simpleytapi = require('simple-youtube-api')
 var guilds = {};
