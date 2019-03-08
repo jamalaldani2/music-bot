@@ -4,7 +4,6 @@ const ytdl = require("ytdl-core");
 const convert = require("hh-mm-ss")
 const fetchVideoInfo = require("youtube-info");
 const simpleytapi = require('simple-youtube-api')
-const youtube = new simpleytapi(YT_API_KEY);
 var guilds = {};
 
 /////////////////////////////////////////////////////////////////
