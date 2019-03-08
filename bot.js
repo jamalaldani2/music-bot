@@ -5,6 +5,7 @@ const convert = require("hh-mm-ss")
 const prefix = `$`
 const fetchVideoInfo = require("youtube-info");
 const simpleytapi = require('simple-youtube-api')
+const youtube = new simpleytapi(AIzaSyCQapWI28_Um0n4AEGNVw7l3QZqhQF0cFs);
 var guilds = {};
 
 /////////////////////////////////////////////////////////////////
